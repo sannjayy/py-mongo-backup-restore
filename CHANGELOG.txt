@@ -1,0 +1,6 @@
+Change Log
+==========
+
+1.0.0 (28/02/2024)
+-------------------
+- Initial Stable Release
