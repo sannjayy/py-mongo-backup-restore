@@ -18,7 +18,7 @@ classifiers = [
  
 setup(
   name='py_mongo_backup_restore',
-  version='1.0.0',
+  version='2.0.0',
   description='Python Library to Backup and Restore MongoDB',
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -27,7 +27,7 @@ setup(
   author_email='me@sanjaysikdar.dev',
   license='MIT', 
   classifiers=classifiers,
-  keywords='python, mongo, backup, restore', 
+  keywords='python, mongo, backup, restore, mongodb', 
   packages=find_packages(where="src"),
   python_requires=">=3.10, <4",   
   package_dir={'':'src'},

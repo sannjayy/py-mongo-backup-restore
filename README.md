@@ -19,17 +19,17 @@ from py_mongo_backup_restore import PyMongoBackupRestore
 
 # Database Configuration:
 config = {
-    'protocol': 'mongodb',
-    'host': '3.108.158.64:27017',
-    'username': 'admin',
-    'password': 'XXXXXXXXXXXXXXXX',
-    'params': '?authSource=admin', # Optional
+    'scheme': 'mongodb',
+    'host': '37.108.158.64:27017',
+    'username': 'username',
+    'password': 'password',
+    'extra_options': '?authSource=admin', # Optional
+    'database_name': 'test', # Optional
 }
 
 # (OR) Connection with URI
 config = {
-    'host_uri': '', # If MongoDB URI  (Optional)
-    'params': '?authSource=admin', # Optional
+    'connection_string': 'mongodb+srv://username:password@host.gp2xb.mongodb.net/database?retryWrites=true&w=majority'
 }
 
 # Creating Instance
@@ -53,14 +53,14 @@ PyMongoBackupRestore(**config).check_mongodump_mongorestore()
 ```python
 # Backup Full Database
 mongo_handler.backup(
-    database_name = "DATABASE_NAME", 
+    database_name = "DATABASE_NAME",  # Optional if a database_name is provided in the config.
     backup_folder = "BACKUP_FOLDER", 
     compression="gzip" # (Optional)
 )
 
 # (OR) Backup a Collection
 mongo_handler.backup(
-    database_name = "DATABASE_NAME", 
+    database_name = "DATABASE_NAME", # Optional if a database_name is provided in the config.
     collection_name = "COLLECTION_NAME", 
     backup_folder = "BACKUP_FOLDER", 
     compression="gzip" # (Optional)

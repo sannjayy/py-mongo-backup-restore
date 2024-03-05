@@ -1,22 +1,38 @@
 import subprocess
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlparse, parse_qs, urlencode
 
 class PyMongoBackupRestore:
     
     def __init__(self, **kwargs) -> None:
-        self.MONGO_USERNAME = quote_plus(kwargs.get('username'))
-        self.MONGO_PASSWORD = quote_plus(kwargs.get('password'))
-        self.HOST = kwargs.get('host')
-        self.PARAMS = kwargs.get('params', '')
-        _host_uri = kwargs.get('host_uri', None)
-        self.MONGO_HOST_URI = _host_uri or f"{kwargs.get('protocol', 'mongodb')}://{self.MONGO_USERNAME}:{self.MONGO_PASSWORD}@{self.HOST}/{self.PARAMS}"
+
+        self.CONNECTION_STRING = kwargs.get('connection_string', None)
+        if self.CONNECTION_STRING:
+            # Parse the connection string
+            parsed_url = urlparse(self.CONNECTION_STRING)
+            self.SCHEME = parsed_url.scheme
+            self.USERNAME = parsed_url.username
+            self.PASSWORD = parsed_url.password
+            self.HOST = parsed_url.hostname
+            self.EXTRA_OPTIONS  = urlencode({key: val[0] for key, val in parse_qs(parsed_url.query).items()})
+            self.DATABASE = parsed_url.path.strip('/') or None
+        else:
+            self.SCHEME = kwargs.get('scheme', 'mongodb')
+            self.USERNAME = kwargs.get('username', '')
+            self.PASSWORD = kwargs.get('password', '')
+            self.HOST = kwargs.get('host')
+            self.EXTRA_OPTIONS  = kwargs.get('extra_options', '')
+            self.DATABASE = kwargs.get('database_name', None)
+            
+        self.MONGO_URI = f"{self.SCHEME}://{quote_plus(self.USERNAME)}:{quote_plus(self.PASSWORD)}@{self.HOST}/{self.EXTRA_OPTIONS}"
             
     def get_uri(self):
-        return self.MONGO_HOST_URI
+        if self.DATABASE:
+            return f"{self.SCHEME}://{quote_plus(self.USERNAME)}:{quote_plus(self.PASSWORD)}@{self.HOST}/{self.DATABASE}?{self.EXTRA_OPTIONS}"
+        return self.MONGO_URI
     
     
     def backup(self, *args, **kwargs):
-        database_name = kwargs.get('database_name')
+        database_name = self.DATABASE or kwargs.get('database_name')
         backup_folder = kwargs.get('backup_folder')
         compression = kwargs.get('compression', 'default')
         collection_name = kwargs.get('collection_name', None)
@@ -24,7 +40,7 @@ class PyMongoBackupRestore:
         # Use mongodump command to backup the database
         backup_cmd = [
             "mongodump",
-            "--uri", self.MONGO_HOST_URI,
+            "--uri", self.get_uri(),
             "--db", database_name,
             # "--gzip",  # Add --gzip option for compression
             "--out", backup_folder
@@ -43,13 +59,11 @@ class PyMongoBackupRestore:
             print(result.stdout)
             
         except subprocess.CalledProcessError as e:
-            print(f"Restore of {database_name}.{backup_cmd} failed. Error: {e}")
-            print("Output:")
-            print(e.output)
+            print(f"Backup of {database_name}.{backup_cmd} failed. Error: {e}")
         
     
     def backup_collection(self, *args, **kwargs):
-        database_name = kwargs.get('database_name')
+        database_name = self.DATABASE or kwargs.get('database_name')
         backup_folder = kwargs.get('backup_folder')
         compression = kwargs.get('compression', 'default')
         collection_name = kwargs.get('collection_name', None)
@@ -57,7 +71,7 @@ class PyMongoBackupRestore:
         # Use mongodump command to backup the database
         backup_cmd = [
             "mongodump",
-            "--uri", self.MONGO_HOST_URI,
+            "--uri", self.get_uri(),
             "--db", database_name,
             "--collection", collection_name,
             # "--gzip",  # Add --gzip option for compression
@@ -74,16 +88,14 @@ class PyMongoBackupRestore:
             
         except subprocess.CalledProcessError as e:
             print(f"Restore of {database_name}.{backup_cmd} failed. Error: {e}")
-            print("Output:")
-            print(e.output)
     
     def restore(self, *args, **kwargs):
-        database_name = kwargs.get('database_name')
+        database_name = self.DATABASE or kwargs.get('database_name')
         backup_folder = kwargs.get('backup_folder')
         
         restore_cmd = [
             "mongorestore",
-            "--uri", self.MONGO_HOST_URI,
+            "--uri", self.get_uri(),
             "--db", database_name,
             backup_folder
         ]
@@ -95,17 +107,15 @@ class PyMongoBackupRestore:
             print(result.stdout)
         except subprocess.CalledProcessError as e:
             print(f"Restore of {database_name} failed. Error: {e}")
-            print("Output:")
-            print(e.output)
             
     def restore_collection(self, *args, **kwargs):
-        database_name = kwargs.get('database_name')       
+        database_name = self.DATABASE or kwargs.get('database_name')  
         collection_name = kwargs.get('collection_name', None)
         collection_source = kwargs.get('collection_source', None)
         
         restore_cmd = [
             "mongorestore",
-            "--uri", self.MONGO_HOST_URI,
+            "--uri", self.get_uri(),
             "--db", database_name,
             "--collection", collection_name,
             collection_source
@@ -118,8 +128,6 @@ class PyMongoBackupRestore:
             print(result.stdout)
         except subprocess.CalledProcessError as e:
             print(f"Restore of {database_name}.{collection_name} failed. Error: {e}")
-            print("Output:")
-            print(e.output)
         
     def check_mongodump_mongorestore(self, info=False):
         try:

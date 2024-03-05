@@ -3,24 +3,28 @@ from py_mongo_backup_restore import PyMongoBackupRestore
 
 # Example Usage
 config = {
-    'protocol': 'mongodb',
-    'host': '3.108.158.64:27017',
-    'username': 'admin',
-    'password': 'XXXXXXXXXXXXXXXX',
-    'params': '?authSource=admin', # Optional
+    'scheme': 'mongodb',
+    'host': '37.108.158.64:27017',
+    'username': 'username',
+    'password': 'password',
+    'extra_options': '?authSource=admin', # Optional
+    'database_name': 'testDatabase', # Optional
 }
+# config = {
+#     'connection_string': 'mongodb+srv://username:password@host.gp2xb.mongodb.net/database?retryWrites=true&w=majority'
+# }
 
-PyMongoBackupRestore(**config).check_mongodump_mongorestore()
+# PyMongoBackupRestore(**config).check_mongodump_mongorestore()
 
-# mongo_handler = PyMongoBackupRestore(**config)
-# print('URI -> ', mongo_handler.get_uri())
+mongo_handler = PyMongoBackupRestore(**config)
+print('URI -> ', mongo_handler.get_uri())
 
 # Backup Database
-# mongo_handler.backup(
-#     database_name = "location_database_test", 
-#     backup_folder = "backup_folder/newzip", 
-#     compression="gzip" # --gzip option for compression
-# )
+mongo_handler.backup(
+    # database_name = "testDatabase",  # Optional
+    backup_folder = "backup_folder/TestDatabase", 
+    compression="gzip" # --gzip option for compression
+)
 
 # mongo_handler.backup(
 #     database_name = "location_database_new1", 

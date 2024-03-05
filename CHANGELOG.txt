@@ -3,4 +3,11 @@ Change Log
 
 1.0.0 (28/02/2024)
 -------------------
-- Initial Stable Release
+- Initial Stable Release.
+
+
+2.0.0 (05/03/2024)
+-------------------
+- Major Bug Fix.
+- Changes to Config Parameters.
+- MongoDB Atlas Support.
